@@ -1,0 +1,20 @@
+{
+  "name": "wasm-run",
+  "version": "0.1.0",
+  "description": "Run arbitrary WASM/WASI files",
+  "author": "Volodymyr Shymanskyy",
+  "main": "wasm-run.js",
+  "license": "MIT",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "wasm-run": "wasm-run.js"
+  },
+  "dependencies": {
+    "binaryen": "^101.0.0",
+    "chalk": "^4.1.1",
+    "restructure": "^0.5.4",
+    "yargs": "^16.2.0"
+  }
+}
