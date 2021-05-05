@@ -1,5 +1,11 @@
-# node-wasm-run
+# wasm-run
 Run arbitrary WASM/WASI files
+
+## Installation
+
+```sh
+npm install wasm-run -g
+```
 
 ## Features
 
