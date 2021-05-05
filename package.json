@@ -3,8 +3,10 @@
   "version": "0.1.0",
   "description": "Run arbitrary WASM/WASI files",
   "author": "Volodymyr Shymanskyy",
-  "main": "wasm-run.js",
   "license": "MIT",
+
+  "main": "wasm-run.js",
+
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -16,5 +18,18 @@
     "chalk": "^4.1.1",
     "restructure": "^2.0.0",
     "yargs": "^16.2.0"
+  },
+  "keywords": [
+    "WebAssembly",
+    "wasm",
+    "WASI",
+    "tracing"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wasm3/node-wasm-run"
+  },
+  "bugs": {
+    "url": "https://github.com/wasm3/node-wasm-run/issues"
   }
 }
