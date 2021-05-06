@@ -46,12 +46,12 @@ $ wasm-run --trace wasi-hello-world.wasm
 
 ## Features
 
-☑ Load `wasm` and `wat` files (using `Binaryen`)
-☑ Run specific exported function
-☑ Run `wasi-snapshot-preview1` apps via `--experimental-wasi-unstable-preview1` flag
-☑ Run `wasi-unstable` apps (compatibility layer)
-☑ `i64` args, `multi-value`, `bulk-memory`, `tail-calls` support via experimental flags
-☑ Generic imports tracing
-☐ Compiled wasm caching (blocked by [#1](https://github.com/wasm3/node-wasm-run/issues/1))
-☐ WASI API and structures decoding (generate from witx?)
-☐ REPL mode
+☑ Load `wasm` and `wat` files (using `Binaryen`)  
+☑ Run specific exported function  
+☑ Run `wasi-snapshot-preview1` apps via `--experimental-wasi-unstable-preview1` flag  
+☑ Run `wasi-unstable` apps (compatibility layer)  
+☑ `i64` args, `multi-value`, `bulk-memory`, `tail-calls` support via experimental flags  
+☑ Generic imports tracing  
+☐ Compiled wasm caching (blocked by [#1](https://github.com/wasm3/node-wasm-run/issues/1))  
+☐ WASI API and structures decoding (generate from witx?)  
+☐ REPL mode  
