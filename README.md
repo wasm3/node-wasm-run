@@ -20,8 +20,8 @@ wasm-run [options] <file> [args..]
 
 Options:
   -i, --invoke     Function to execute
-      --trace      Trace imported function calls
   -t, --timeout    Execution timeout (ms)
+      --trace      Trace imported function calls
       --gas-limit  Gas limit  [default: 100000]
       --version    Show version number
       --help       Show help
@@ -54,7 +54,7 @@ $ wasm-run --trace wasi-hello-world.wasm
 ☑ Run `wasi-unstable` apps (compatibility layer)  
 ☑ `i64` args, `multi-value`, `bulk-memory`, `tail-calls` support via experimental flags  
 ☑ Generic imports tracing  
-☑ Gas metering  
+☑ Gas metering/limiting  
 ☐ Compiled wasm caching (blocked by [#1](https://github.com/wasm3/node-wasm-run/issues/1))  
 ☐ WASI API and structures decoding (generate from witx?)  
 ☐ REPL mode  
