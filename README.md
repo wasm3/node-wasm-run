@@ -3,8 +3,6 @@ Run arbitrary WASM/WASI files
 
 ## Installation
 
-This is developed and tested on `Linux + Node.js v14.x`, other versions may need some adjustments (i.e. enabling/disabling experimental flags).
-
 ```sh
 $ npm install wasm-run -g
 
