@@ -1,6 +1,11 @@
 # wasm-run
 Run arbitrary WASM/WASI files
 
+[![NPM version](https://img.shields.io/npm/v/wasm-run.svg)](https://www.npmjs.com/package/wasm-run)
+[![GitHub stars](https://img.shields.io/github/stars/wasm3/node-wasm-run.svg)](https://github.com/wasm3/node-wasm-run)
+[![GitHub issues](https://img.shields.io/github/issues/wasm3/node-wasm-run.svg)](https://github.com/wasm3/node-wasm-run/issues)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/wasm3/node-wasm-run)
+
 ## Installation
 
 ```sh
