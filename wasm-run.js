@@ -102,16 +102,16 @@ if (!argv.respawn)
  */
 
 function fatal(msg) {
-  console.error(chalk.grey('[tracer] ') + chalk.red.bold("Error: ") + msg);
+  console.error(chalk.grey('[runtime] ') + chalk.red.bold("Error: ") + msg);
   process.exit(1);
 }
 
 function warn(msg) {
-  console.error(chalk.grey('[tracer] ') + chalk.yellow.bold("Warning: ") + msg);
+  console.error(chalk.grey('[runtime] ') + chalk.yellow.bold("Warning: ") + msg);
 }
 
 function log(msg) {
-  console.error(chalk.grey('[tracer] ') + msg);
+  console.error(chalk.grey('[runtime] ') + msg);
 }
 
 class EncodeBuffer {
@@ -329,26 +329,46 @@ async function parseWasmInfo(binary)
      * Prepare imports
      */
 
+    let imports = { }
+
+    /*
+     * Gas Metering
+     */
+
+    const GAS_FACTOR = 10000;
+
     let ctx = {
-        gasCurrent: argv.gasLimit,
+        gasCurrent: argv.gasLimit * GAS_FACTOR,
+        gasLimit:   argv.gasLimit * GAS_FACTOR,
     };
 
-    let imports = {
-        metering: {
-            usegas: function(gas) {
-                ctx.gasCurrent -= (gas/10000);
-                if (ctx.gasCurrent < 0) {
-                    throw `Run out of gas`;
-                }
+    function getGasUsed() {
+        return (ctx.gasLimit - ctx.gasCurrent) / GAS_FACTOR;
+    }
+
+    function printGasUsed() {
+        const gasUsed = getGasUsed();
+        if (gasUsed) {
+            log(`Gas used: ${gasUsed}`);
+        }
+    }
+
+    imports.metering = {
+        usegas: function (gas) {
+            if ((ctx.gasCurrent -= gas) < 0) {
+                throw `Run out of gas (gas used: ${getGasUsed()})`;
             }
         }
     }
 
-    let wasi;
+    /*
+     * WASI
+     */
+
     if (wasmInfo.wasiVersion)
     {
         const { WASI } = require('wasi');
-        wasi = new WASI({
+        ctx.wasi = new WASI({
             returnOnExit: true,
             args: argv._,
             env: {
@@ -362,10 +382,12 @@ async function parseWasmInfo(binary)
             }
         });
 
+        const wasiImport = ctx.wasi.wasiImport;
+
         if (wasmInfo.wasiVersion == "wasi_snapshot_preview1") {
-            imports.wasi_snapshot_preview1 = wasi.wasiImport;
+            imports.wasi_snapshot_preview1 = wasiImport;
         } else if (wasmInfo.wasiVersion == "wasi_unstable") {
-            imports.wasi_unstable = Object.assign({}, wasi.wasiImport);
+            imports.wasi_unstable = Object.assign({}, wasiImport);
 
             const uint8  = r.uint8;
             const uint16 = r.uint16le;
@@ -403,13 +425,14 @@ async function parseWasmInfo(binary)
                 case 2: whence = 0; break;  // set
                 default: throw "Invalid whence";
                 }
-                return wasi.wasiImport.fd_seek(fd, offset, whence, result);
+                const res = wasiImport.fd_seek(fd, offset, whence, result);
+                return res;
             }
             imports.wasi_unstable.fd_filestat_get = function(fd, buf) {
                 const mem = new Uint8Array(ctx.memory.buffer);
                 const backup = mem.slice(buf+56, buf+(64-56));
 
-                const res = wasi.wasiImport.fd_filestat_get(fd, buf);
+                const res = wasiImport.fd_filestat_get(fd, buf);
 
                 const modified = encodeStruct(wasi_unstable_filestat_t,
                                               decodeStruct(wasi_snapshot_preview1_filestat_t,
@@ -422,7 +445,7 @@ async function parseWasmInfo(binary)
                 const mem = new Uint8Array(ctx.memory.buffer);
                 const backup = mem.slice(buf+56, buf+(64-56));
 
-                const res = wasi.wasiImport.path_filestat_get(fd, flags, path, path_len, buf);
+                const res = wasiImport.path_filestat_get(fd, flags, path, path_len, buf);
 
                 const modified = encodeStruct(wasi_unstable_filestat_t,
                                               decodeStruct(wasi_snapshot_preview1_filestat_t,
@@ -497,18 +520,14 @@ async function parseWasmInfo(binary)
             let func = instance.exports[argv.invoke];
             let result = func(...args);
             log(`Result: ${result}`);
-            if (ctx.gasCurrent != argv.gasLimit) {
-                log(`Gas used: ${argv.gasLimit - ctx.gasCurrent}`);
-            }
+            printGasUsed();
         } else {
             ctx.memory = instance.exports.memory;
-            let exitcode = wasi.start(instance);
+            let exitcode = ctx.wasi.start(instance);
             if (exitcode) {
                 log(`Exit code: ${exitcode}`);
             }
-            if (ctx.gasCurrent != argv.gasLimit) {
-                log(`Gas used: ${(argv.gasLimit - ctx.gasCurrent).toFixed(4)}`);
-            }
+            printGasUsed();
             process.exit(exitcode);
         }
     } catch (e) {
