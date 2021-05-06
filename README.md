@@ -48,7 +48,7 @@ $ wasm-run wasi-hello-world.wasm
 Hello world!
 ```
 
-#### Exported function tracing
+#### Imported function tracing
 ```sh
 $ wasm-run --trace wasi-hello-world.wasm
 [runtime] wasi_snapshot_preview1!fd_prestat_get 3,65528 => 0
