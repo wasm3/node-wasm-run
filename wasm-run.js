@@ -30,7 +30,7 @@ const argv = require("yargs")
     .example('$0 --invoke=swap_i64 swap.wat 10 12', 'wat file with multivalue support')
     .example('$0 test-wasi-snapshot-preview1.wasm', 'wasi support')
     .example('$0 test-wasi-unstable.wasm', 'wasi-unstable compatibility layer')
-    .example('$0 --trace wasi-hello-world.wasm', 'exported function tracing')
+    .example('$0 --trace wasi-hello-world.wasm', 'imported function tracing')
     .example('$0 --gas-limit=500000000 coremark.metered.wasm', 'gas metering')
     .option({
       "respawn": { type: "boolean", hidden: true },
