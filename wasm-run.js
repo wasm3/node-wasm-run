@@ -1,8 +1,38 @@
-#!/usr/bin/env -S node --experimental-wasm-bigint --experimental-wasm-mv --wasm-opt
+#!/usr/bin/env node
 
-// TODO: auto-detect available flags using node --v8-options
+/*
+ * TODO:
+ * [ ] --timeout flag
+ * [ ] --gas-limit flag
+ */
 
 "use strict";
+
+/*
+ * Respawn with experimental flags
+ */
+
+if (process.argv[2] != "--respawn") {
+    const { execFileSync, spawnSync } = require('child_process');
+    const node = process.argv[0];
+    const script = process.argv[1];
+    const script_args = process.argv.slice(2);
+
+    let allFlags = execFileSync(node, ["--v8-options"]).toString();
+    allFlags += execFileSync(node, ["--help"]).toString();
+
+    const nodeFlags = [ "--experimental-wasm-bigint",
+                        "--experimental-wasm-mv",
+                        "--experimental-wasm-return-call",
+                        "--experimental-wasm-bulk-memory",
+                        "--experimental-wasi-unstable-preview1",
+                        "--wasm-opt"].filter(x => allFlags.includes(x));
+
+    let res = spawnSync(node,
+                        [...nodeFlags, script, "--respawn", ...script_args],
+                        { stdio: ['inherit', 'inherit', 'inherit'] });
+    process.exit(res.status);
+}
 
 /*
  * Author: Volodymyr Shymanskyy
@@ -27,7 +57,7 @@ const argv = require("yargs")
     .example('$0 test-wasi-unstable.wasm',               '')
     .example('$0 test-wasi-snapshot-preview1.wasm',      '')
     .option({
-      // Instrumentation options
+      "respawn": { type: "boolean", describe: false }, // hidden
       "invoke": {
         alias: "i",
         type: "string",

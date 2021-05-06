@@ -1,6 +1,6 @@
 {
   "name": "wasm-run",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Run arbitrary WASM/WASI files",
   "author": "Volodymyr Shymanskyy",
   "license": "MIT",
