@@ -25,31 +25,42 @@ Options:
       --gas-limit  Gas limit  [default: 100000]
       --version    Show version number  [boolean]
       --help       Show help  [boolean]
+```
 
-### Run a single exported function
+#### Run a single exported function
+```sh
 $ wasm-run ./test/fib32.wasm 32
 [runtime] Running fib(32)...
 [runtime] Result: 2178309
+```
 
-### WAT file with multivalue support
+#### WAT file with multivalue support
+```sh
 $ wasm-run --invoke=swap_i64 ./test/swap.wat 10 12
 [runtime] Converted to binary (256 bytes)
 [runtime] Running swap_i64(10,12)...
 [runtime] Result: 12,10
+```
 
-### WASI support
+#### WASI support
+```sh
 $ wasm-run wasi-hello-world.wasm
 Hello world!
+```
 
-### Exported function tracing
+#### Exported function tracing
+```sh
 $ wasm-run --trace wasi-hello-world.wasm
 [runtime] wasi_snapshot_preview1!fd_prestat_get 3,65528 => 0
 [runtime] wasi_snapshot_preview1!fd_prestat_dir_name 3,70064,2 => 0
 [runtime] wasi_snapshot_preview1!fd_prestat_get 4,65528 => 0
 [runtime] wasi_snapshot_preview1!fd_prestat_dir_name 4,70064,2 => 0
 ...
+```
 
-### Gas metering/limiting
+#### Gas metering/limiting
+`wasm-meter` can be installed via `npm install wasm-metering -g`
+```sh
 $ wasm-meter fib64.wasm fib64.metered.wasm
 $ wasm-run fib64.metered.wasm 8
 [runtime] Running fib(8)...
