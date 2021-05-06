@@ -34,7 +34,7 @@ const argv = require("yargs")
     .example('$0 test-wasi-unstable.wasm',               '')
     .example('$0 test-wasi-snapshot-preview1.wasm',      '')
     .option({
-      "respawn": { type: "boolean", describe: false }, // hidden
+      "respawn": { type: "boolean", hidden: true },
       "invoke": {
         alias: "i",
         type: "string",
