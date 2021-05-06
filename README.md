@@ -19,31 +19,45 @@ $ wasm-run --help
 wasm-run [options] <file> [args..]
 
 Options:
-  -i, --invoke     Function to execute
+  -i, --invoke     Function to execute  [string]
   -t, --timeout    Execution timeout (ms)
-      --trace      Trace imported function calls
+      --trace      Trace imported function calls  [boolean]
       --gas-limit  Gas limit  [default: 100000]
-      --version    Show version number
-      --help       Show help
+      --version    Show version number  [boolean]
+      --help       Show help  [boolean]
 
+### Run a single exported function
 $ wasm-run ./test/fib32.wasm 32
-[tracer] Running fib(32)...
-[tracer] Result: 2178309
+[runtime] Running fib(32)...
+[runtime] Result: 2178309
 
+### WAT file with multivalue support
 $ wasm-run --invoke=swap_i64 ./test/swap.wat 10 12
-[tracer] Converted to binary (256 bytes)
-[tracer] Running swap_i64(10,12)...
-[tracer] Result: 12,10
+[runtime] Converted to binary (256 bytes)
+[runtime] Running swap_i64(10,12)...
+[runtime] Result: 12,10
 
+### WASI support
 $ wasm-run wasi-hello-world.wasm
 Hello world!
 
+### Exported function tracing
 $ wasm-run --trace wasi-hello-world.wasm
-[tracer] wasi_snapshot_preview1!fd_prestat_get 3,65528 => 0
-[tracer] wasi_snapshot_preview1!fd_prestat_dir_name 3,70064,2 => 0
-[tracer] wasi_snapshot_preview1!fd_prestat_get 4,65528 => 0
-[tracer] wasi_snapshot_preview1!fd_prestat_dir_name 4,70064,2 => 0
+[runtime] wasi_snapshot_preview1!fd_prestat_get 3,65528 => 0
+[runtime] wasi_snapshot_preview1!fd_prestat_dir_name 3,70064,2 => 0
+[runtime] wasi_snapshot_preview1!fd_prestat_get 4,65528 => 0
+[runtime] wasi_snapshot_preview1!fd_prestat_dir_name 4,70064,2 => 0
 ...
+
+### Gas metering/limiting
+$ wasm-meter fib64.wasm fib64.metered.wasm
+$ wasm-run fib64.metered.wasm 8
+[runtime] Running fib(8)...
+[runtime] Result: 21
+[runtime] Gas used: 5.1874
+$ wasm-run fib64.metered.wasm 30
+[runtime] Running fib(30)...
+[runtime] Error: Run out of gas (gas used: 100000.0177)
 ```
 
 ## Features
