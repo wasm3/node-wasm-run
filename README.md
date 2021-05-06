@@ -15,13 +15,14 @@ Options:
       --version  Show version number  [boolean]
       --help     Show help  [boolean]
 
-$ wasm-run fib32.wasm 32
+$ wasm-run ./test/fib32.wasm 32
 [tracer] Running fib(32)...
 [tracer] Result: 2178309
 
-$ wasm-run --invoke=swap_i64 swap.wasm 12 34
-[tracer] Running swap_i64(12,34)...
-[tracer] Result: 34,12
+$ wasm-run --invoke=swap_i64 ./test/swap.wat 10 12
+[tracer] Converted to binary (256 bytes)
+[tracer] Running swap_i64(10,12)...
+[tracer] Result: 12,10
 
 $ wasm-run wasi-hello-world.wasm
 Hello world!
