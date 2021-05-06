@@ -2,37 +2,14 @@
 
 /*
  * TODO:
- * [ ] --timeout flag
- * [ ] --gas-limit flag
+ * [ ] --inspect
+ * [ ] check if imports are satisfied, print missing parts
+ * [ ] auto-import memory
+ * [ ] --validate flag
+ * [ ] --imports flag
  */
 
 "use strict";
-
-/*
- * Respawn with experimental flags
- */
-
-if (process.argv[2] != "--respawn") {
-    const { execFileSync, spawnSync } = require('child_process');
-    const node = process.argv[0];
-    const script = process.argv[1];
-    const script_args = process.argv.slice(2);
-
-    let allFlags = execFileSync(node, ["--v8-options"]).toString();
-    allFlags += execFileSync(node, ["--help"]).toString();
-
-    const nodeFlags = [ "--experimental-wasm-bigint",
-                        "--experimental-wasm-mv",
-                        "--experimental-wasm-return-call",
-                        "--experimental-wasm-bulk-memory",
-                        "--experimental-wasi-unstable-preview1",
-                        "--wasm-opt"].filter(x => allFlags.includes(x));
-
-    let res = spawnSync(node,
-                        [...nodeFlags, script, "--respawn", ...script_args],
-                        { stdio: ['inherit', 'inherit', 'inherit'] });
-    process.exit(res.status);
-}
 
 /*
  * Author: Volodymyr Shymanskyy
@@ -64,9 +41,21 @@ const argv = require("yargs")
         describe: "Function to execute",
         nargs: 1
       },
+      "timeout": {
+        alias: "t",
+        type: "int",
+        describe: "Execution timeout (ms)",
+        nargs: 1
+      },
       "trace": {
         type: "boolean",
         describe: "Trace imported function calls",
+      },
+      "gas-limit": {
+        type: "float",
+        describe: "Gas limit",
+        default: 100000,
+        nargs: 1
       },
     })
     .string('_')
@@ -75,6 +64,38 @@ const argv = require("yargs")
     .help()
     .wrap(null)
     .argv;
+
+/*
+ * Respawn with experimental flags
+ */
+
+if (!argv.respawn)
+{
+    const { execFileSync, spawnSync } = require('child_process');
+    const node = process.argv[0];
+    const script = process.argv[1];
+    const script_args = process.argv.slice(2);
+
+    let allFlags = execFileSync(node, ["--v8-options"]).toString();
+    allFlags += execFileSync(node, ["--help"]).toString();
+
+    const nodeFlags = [ "--experimental-wasm-bigint",
+                        "--experimental-wasm-mv",
+                        "--experimental-wasm-return-call",
+                        "--experimental-wasm-bulk-memory",
+                        "--experimental-wasi-unstable-preview1",
+                        "--wasm-opt"].filter(x => allFlags.includes(x));
+
+    let res = spawnSync(node,
+                        [...nodeFlags, script, "--respawn", ...script_args],
+                        { stdio: ['inherit', 'inherit', 'inherit'],
+                          timeout: argv.timeout });
+
+    if (res.error) {
+        fatal(res.error);
+    }
+    process.exit(res.status);
+}
 
 /*
  * Helpers
@@ -279,7 +300,7 @@ async function parseWasmInfo(binary)
     /*
      * Compile
      */
-    
+
     /* TODO: caching
         const v8 = require('v8');
         const compiled = await WebAssembly.compile(binary);
@@ -308,12 +329,22 @@ async function parseWasmInfo(binary)
      * Prepare imports
      */
 
+    let ctx = {
+        gasCurrent: argv.gasLimit,
+    };
+
     let imports = {
-        // TODO: add ability to define imports
+        metering: {
+            usegas: function(gas) {
+                ctx.gasCurrent -= (gas/10000);
+                if (ctx.gasCurrent < 0) {
+                    throw `Run out of gas`;
+                }
+            }
+        }
     }
 
     let wasi;
-    let ctx = {};
     if (wasmInfo.wasiVersion)
     {
         const { WASI } = require('wasi');
@@ -435,44 +466,52 @@ async function parseWasmInfo(binary)
      * Execute
      */
 
-    const instance = await WebAssembly.instantiate(module, imports);
+    try {
+        let instance = await WebAssembly.instantiate(module, imports);
 
-    // TODO: REPL mode
-
-    // If no WASI is detected, and no func specified -> try to run the only function
-    if (!argv.invoke && !wasmInfo.wasiVersion && wasmInfo.exportedFuncs.length == 1) {
-        argv.invoke = wasmInfo.exportedFuncs[0];
-    }
-
-    if (argv.invoke) {
-        if (!wasmInfo.exportedFuncs.includes(argv.invoke)) {
-            fatal(`Function not found: ${argv.invoke}`);
+        // If no WASI is detected, and no func specified -> try to run the only function
+        if (!argv.invoke && !wasmInfo.wasiVersion && wasmInfo.exportedFuncs.length == 1) {
+            argv.invoke = wasmInfo.exportedFuncs[0];
         }
-        let args = argv._.slice(1)
 
-        let wasmInfo2 = await parseWasmInfo(binary);
-        //console.log(JSON.stringify(wasmInfo2));
-        let funcInfo = wasmInfo2.funcsByName[argv.invoke];
-
-        for (let i = 0; i < funcInfo.params.length; i++) {
-            switch (funcInfo.params[i]) {
-            case 'i32': args[i] = parseInt(args[i]);    break;
-            case 'i64': args[i] = BigInt(args[i]);      break;
-            case 'f32':
-            case 'f64': args[i] = parseFloat(args[i]);  break;
+        if (argv.invoke) {
+            if (!wasmInfo.exportedFuncs.includes(argv.invoke)) {
+                fatal(`Function not found: ${argv.invoke}`);
             }
-        }
+            let args = argv._.slice(1)
 
-        log(`Running ${argv.invoke}(${args})...`);
-        let func = instance.exports[argv.invoke];
-        let result = func(...args);
-        log(`Result: ${result}`);
-    } else {
-        ctx.memory = instance.exports.memory;
-        let exitcode = wasi.start(instance);
-        if (exitcode) {
-            log(`Exit code: ${exitcode}`);
+            let wasmInfo2 = await parseWasmInfo(binary);
+            //console.log(JSON.stringify(wasmInfo2));
+            let funcInfo = wasmInfo2.funcsByName[argv.invoke];
+
+            for (let i = 0; i < funcInfo.params.length; i++) {
+                switch (funcInfo.params[i]) {
+                case 'i32': args[i] = parseInt(args[i]);    break;
+                case 'i64': args[i] = BigInt(args[i]);      break;
+                case 'f32':
+                case 'f64': args[i] = parseFloat(args[i]);  break;
+                }
+            }
+
+            log(`Running ${argv.invoke}(${args})...`);
+            let func = instance.exports[argv.invoke];
+            let result = func(...args);
+            log(`Result: ${result}`);
+            if (ctx.gasCurrent != argv.gasLimit) {
+                log(`Gas used: ${argv.gasLimit - ctx.gasCurrent}`);
+            }
+        } else {
+            ctx.memory = instance.exports.memory;
+            let exitcode = wasi.start(instance);
+            if (exitcode) {
+                log(`Exit code: ${exitcode}`);
+            }
+            if (ctx.gasCurrent != argv.gasLimit) {
+                log(`Gas used: ${(argv.gasLimit - ctx.gasCurrent).toFixed(4)}`);
+            }
+            process.exit(exitcode);
         }
-        process.exit(exitcode);
+    } catch (e) {
+        fatal(e);
     }
 })();
