@@ -5,7 +5,11 @@ Run arbitrary WASM/WASI files
 
 ```sh
 $ npm install wasm-run -g
+```
 
+## Usage
+
+```sh
 $ wasm-run --help        
 wasm-run [options] <file> [args..]
 
@@ -26,6 +30,13 @@ $ wasm-run --invoke=swap_i64 ./test/swap.wat 10 12
 
 $ wasm-run wasi-hello-world.wasm
 Hello world!
+
+$ wasm-run --trace wasi-hello-world.wasm
+[tracer] wasi_snapshot_preview1!fd_prestat_get 3,65528 => 0
+[tracer] wasi_snapshot_preview1!fd_prestat_dir_name 3,70064,2 => 0
+[tracer] wasi_snapshot_preview1!fd_prestat_get 4,65528 => 0
+[tracer] wasi_snapshot_preview1!fd_prestat_dir_name 4,70064,2 => 0
+...
 ```
 
 ## Features
