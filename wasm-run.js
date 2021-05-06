@@ -1,4 +1,6 @@
-#!/usr/bin/env -S node --experimental-wasi-unstable-preview1 --experimental-wasm-bigint --experimental-wasm-mv
+#!/usr/bin/env -S node --experimental-wasm-bigint --experimental-wasm-mv --wasm-opt
+
+// TODO: auto-detect available flags using node --v8-options
 
 "use strict";
 
@@ -10,24 +12,6 @@ const fs = require("fs");
 const assert = require("assert");
 const chalk = require("chalk");
 const r = require("restructure");
-
-/*
- * Features
- *
- * [+]  Load wasm and wat files
- * [+]  Run arbitrary wasm function
- * [+]  Run single exported function by default
- * [+]  Run wasi-snapshot-preview1 apps
- * [+]  Run wasi-unstable apps (compatibility layer)
- * [+]  Return exitcode
- * [X]  (!!!) Caching - blocked by https://github.com/nodejs/node/issues/36671
- * [+]  Generic imports tracing
- * [+]  BigInt args support
- * [ ]  --mapdir flag
- * [ ]  WASI API + structures decoding (generate from witx?)
- * [ ]  REPL mode
- */
-
 
 /*
  * Arguments
@@ -309,6 +293,8 @@ async function parseWasmInfo(binary)
             env: {
                 "NODEJS": 1
             },
+
+            // TODO: --mapdir flag
             preopens: {
                 "/": ".",
                 ".": ".",
@@ -389,6 +375,7 @@ async function parseWasmInfo(binary)
         }
     }
 
+    // TODO: WASI API + structures decoding (generate from witx?)
     if (argv.trace) {
         function traceGeneric(name, f) {
             return function (...args) {
@@ -419,6 +406,8 @@ async function parseWasmInfo(binary)
      */
 
     const instance = await WebAssembly.instantiate(module, imports);
+
+    // TODO: REPL mode
 
     // If no WASI is detected, and no func specified -> try to run the only function
     if (!argv.invoke && !wasmInfo.wasiVersion && wasmInfo.exportedFuncs.length == 1) {
