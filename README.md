@@ -35,7 +35,7 @@ Hello world!
 - [x] Run specific exported function
 - [x] Run `wasi-snapshot-preview1` apps via `--experimental-wasi-unstable-preview1` flag
 - [x] Run `wasi-unstable` apps (compatibility layer)
-- [x] `i64` args, `multi-value` support (`--experimental-wasm-bigint --experimental-wasm-mv`)
+- [x] `i64` args, `multi-value`, `bulk-memory`, `tail-calls` support via experimental flags
 - [x] Generic imports tracing
 - [ ] Compiled wasm caching (blocked by [#1](https://github.com/wasm3/node-wasm-run/issues/1))
 - [ ] WASI API and structures decoding (generate from witx?)
