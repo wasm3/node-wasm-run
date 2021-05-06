@@ -349,14 +349,14 @@ async function parseWasmInfo(binary)
     function printGasUsed() {
         const gasUsed = getGasUsed();
         if (gasUsed) {
-            log(`Gas used: ${gasUsed}`);
+            log(`Gas used: ${gasUsed.toFixed(4)}`);
         }
     }
 
     imports.metering = {
         usegas: function (gas) {
             if ((ctx.gasCurrent -= gas) < 0) {
-                throw `Run out of gas (gas used: ${getGasUsed()})`;
+                throw `Run out of gas (gas used: ${getGasUsed().toFixed(4)})`;
             }
         }
     }
