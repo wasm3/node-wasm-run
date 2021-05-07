@@ -16,7 +16,7 @@ $ npm install wasm-run -g
 
 ```sh
 $ wasm-run --help        
-wasm-run [options] <file> [args..]
+wasm-run [options] <file> [--] [args..]
 
 Options:
   -i, --invoke     Function to execute  [string]

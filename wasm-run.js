@@ -25,7 +25,7 @@ const r = require("restructure");
  */
 
 const argv = require("yargs")
-    .usage("$0 [options] <file> [args..]")
+    .usage("$0 [options] <file> [--] [args..]")
     .example('$0 fib32.wasm 32', 'run a single exported function')
     .example('$0 --invoke=swap_i64 swap.wat 10 12', 'wat file with multivalue support')
     .example('$0 test-wasi-snapshot-preview1.wasm', 'wasi support')
