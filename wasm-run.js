@@ -50,6 +50,10 @@ const argv = require("yargs")
         type: "boolean",
         describe: "Trace imported function calls",
       },
+      "validate": {
+        type: "boolean",
+        describe: "Validate module and exit",
+      },
       "gas-limit": {
         type: "float",
         describe: "Gas limit",
@@ -294,6 +298,17 @@ async function parseWasmInfo(binary)
     if (inputFile.endsWith('.wat')) {
         binary = await wat2wasm(binary);
         log(`Converted to binary (${binary.length} bytes)`);
+    }
+
+    if (argv.validate)
+    {
+        if (WebAssembly.validate(binary)) {
+            log(`Validation ${chalk.green.bold("PASSED")}`);
+            process.exit(0);
+        } else {
+            log(`Validation ${chalk.red.bold("FAILED")}`);
+            process.exit(1);
+        }
     }
 
     /*
